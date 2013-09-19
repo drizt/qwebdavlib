@@ -5,7 +5,17 @@ QT       -= gui
 
 TARGET = qwebdav
 TEMPLATE = lib
+DESTDIR = ../lib
+win32:DLLDESTDIR = $${DESTDIR}
 
+CONFIG(debug, debug|release) {
+    BUILDDIR = build/debug
+    windows: TARGET = $$join(TARGET,,,d)
+    mac: TARGET = $$join(TARGET,,,_debug)
+} else {
+    BUILDDIR = build/release
+}
+ 
 # Enable DEBUG output with qDebug()
 DEFINES += DEBUG_WEBDAV
 

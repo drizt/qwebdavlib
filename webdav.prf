@@ -1,0 +1,44 @@
+QWEBDAV_INCDIR = $$[QT_INSTALL_HEADERS]
+QWEBDAV_LIBDIR = $$[QT_INSTALL_LIBS]
+
+QWEBDAV_INCDIR ~= s!/qt4*!!
+QWEBDAV_LIBDIR ~= s!/qt4*!!
+
+CONFIG *= qt
+
+# if we are including oauth.prf from the qoauth tree (and not utilizing it as
+# an installed qmake CONFIG feature), then point to the tree.  this allows our
+# qoauth tree apps to build before qoauth itself is installed.
+exists($$PWD/qwebdavlib.pro) {
+    QWEBDAV_INCDIR = $$PWD/include
+    QWEBDAV_LIBDIR = $$PWD/lib
+}
+
+LINKAGE =
+
+# on mac, if qoauth was built as a framework, link against it
+mac: {
+    framework_dir = $${QOAUTH_LIBDIR}
+    exists($$framework_dir/qwebdavlib.framework) {
+        LIBS += -F$$framework_dir
+        exists($$PWD/qwebdavlib.pro): INCLUDEPATH += $$QWEBDAV_INCDIR
+        else: INCLUDEPATH += $$framework_dir/qwebdavlib.framework/Headers
+        LINKAGE = -framework qwebdavlib
+    }
+}
+
+# else, link normally
+isEmpty(LINKAGE) {
+    exists($$PWD/qoauth.pro): INCLUDEPATH += $$QWEBDAV_INCDIR
+    else: INCLUDEPATH += $$QWEBDAV_INCDIR/QtWebdav
+    LIBS += -L$$QWEBDAV_LIBDIR
+    LINKAGE = -lqwebdav
+    CONFIG(debug, debug|release) {
+        windows:LINKAGE = -lqwebdavd
+        mac:LINKAGE = -lqwebdav_debug
+    } else {
+        windows:LINKAGE = -lqwebdav
+    }
+}
+
+LIBS += $$LINKAGE
